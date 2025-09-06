@@ -23,5 +23,5 @@ const io = new Server(server, {
 new SocketManager(io);
 
 server.listen(PORT, () => {
-    logger.info(`🚀 Server running on port ${PORT}`);
+    logger.info(`🚀 Server running on port http://localhost:${PORT}`);
 });

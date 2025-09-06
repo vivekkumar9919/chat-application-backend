@@ -3,11 +3,13 @@ const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const redisClient = require("./connections/redis/index");
 const cookieParser = require("cookie-parser"); // For handling cookies
+const swaggerDocs = require("./config/swagger");
 class App {
   constructor() {
     this.app = express();
     this.middlewares();
     this.routes();
+    this.swagger();
   }
 
   middlewares() {
@@ -45,6 +47,9 @@ class App {
     this.app.use("/api/v1/auth", authRoutes);
   }
 
+  swagger(){
+    swaggerDocs(this.app);
+  }
   getApp() {
     return this.app;
   }
