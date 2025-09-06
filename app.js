@@ -1,12 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
-const session = require("express-session");
-const pgSession = require("connect-pg-simple")(session);
-const pool = require("./connections/postgres/index");
-const { RedisStore } = require("connect-redis");
 const redisClient = require("./connections/redis/index");
-
+const cookieParser = require("cookie-parser"); // For handling cookies
 class App {
   constructor() {
     this.app = express();
@@ -22,24 +18,23 @@ class App {
     this.app.use(express.json());
 
 
-     // Redis session store
-    // ✅ Session with Redis (ioredis client)
-    this.app.use(
-      session({
-        store: new RedisStore({
-          client: redisClient,
-          prefix: "sess:", // optional key prefix
-        }),
-        secret: process.env.SESSION_SECRET || "SUPER_SECRET_KEY",
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-          httpOnly: true,
-          secure: false, // set true in prod w/ HTTPS
-          maxAge: 1000 * 60 * 60 * 24, // 1 day
-        },
-      })
-    );
+   this.app.use(cookieParser()); // Add cookie-parser middleware
+
+    // Middleware to check for session ID in cookies and validate with Redis
+    this.app.use(async (req, res, next) => {
+      const sessionId = req.cookies.sessionId; // Get session ID from cookie
+      if (sessionId) {
+        try {
+          const sessionData = await redisClient.get(`sess:${sessionId}`);
+          if (sessionData) {
+            req.user = JSON.parse(sessionData); // Attach user data to request
+          }
+        } catch (err) {
+          console.error("Redis session retrieval error:", err);
+        }
+      }
+      next();
+    });
   }
 
   routes() {
