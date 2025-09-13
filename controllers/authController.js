@@ -7,19 +7,16 @@ class AuthController {
     static async signup(req, res) {
         const { username, email, password } = req.body;
         try {
-            appLogger.info("Signup attempt", { email });
-
             if (!username || !email || !password) {
-                appLogger.info("Signup attempt with missing fields", { provided_fields: { username: !!username, email: !!email, password: !!password } });
                 return res.status(400).json({ message: "All fields are required" });
             }
-            appLogger.info("Checking if user already exists", { email });
+            
             const existingUser = await AuthService.findUserByEmail(email);
             if (existingUser) {
-                appLogger.info("Signup attempt with existing email", { email });
+                appLogger.warn("Signup attempt with existing email", { email });
                 return res.status(400).json({ message: "User already exists" });
             }
-            appLogger.info("Registering new user", { email, username });
+            
             const newUser = await AuthService.registerUser(username, email, password);
             appLogger.info("User registered successfully", { email, user_id: newUser.id });
 
@@ -36,7 +33,7 @@ class AuthController {
 
         }
         catch (err) {
-            appLogger.error("Signup error", { error: err.message, stack: err.stack, email });
+            appLogger.error("Signup failed", { error: err.message, email });
             res.status(500).json({ message: "Internal Server Error" });
         }
     }
@@ -44,22 +41,20 @@ class AuthController {
     static async login(req, res) {
         const { email, password } = req.body;
         try {
-            appLogger.info("Login attempt", { email });
 
             if (!email || !password) {
-                appLogger.info("Login attempt with missing fields", { provided_fields: { email: !!email, password: !!password } });
                 return res.status(400).json({ message: "Email and password are required" });
             }
 
             const user = await AuthService.findUserByEmail(email);
             if (!user) {
-                appLogger.info("Login attempt with non-existing email", { email });
+                appLogger.warn("Login attempt with non-existing email", { email });
                 return res.status(400).json({ message: "Invalid email or password" });
             }
 
             const isValidPassword = await AuthService.validatePassword(password, user.password, email);
             if (!isValidPassword) {
-                appLogger.info("Login attempt with incorrect password", { email });
+                appLogger.warn("Login attempt with incorrect password", { email });
                 return res.status(400).json({ message: "Invalid email or password" });
             }
 
@@ -79,7 +74,7 @@ class AuthController {
                 maxAge: process.env.COOKIE_MAX_AGE || 86400000, // 1 day
             });
 
-            appLogger.info("User logged in successfully", { email, user_id: user.id, session_id: sessionId });
+            appLogger.info("User logged in successfully", { email, user_id: user.id });
             res.status(200).json({
                 message: "Login successful",
                 user: {
@@ -90,34 +85,31 @@ class AuthController {
                 },
             });
         } catch (err) {
-            appLogger.error("Login error", { error: err.message, stack: err.stack, email });
+            appLogger.error("Login failed", { error: err.message, email });
             res.status(500).json({ message: "Internal Server Error" });
         }
     }
 
     static async logout(req, res) {
-        const sessionId = req?.cookies?.sessionId;
         try {
+            const sessionId = req.cookies.sessionId;
             if (sessionId) {
                 await SessionService.deleteSession(sessionId); // Delete session from Redis
                 res.clearCookie("sessionId"); // Clear the cookie
-                appLogger.info("User logged out successfully", { session_id: sessionId });
+                appLogger.info("User logged out", { session_id: sessionId });
                 return res.status(200).json({ message: "Logout successful" });
             }
             return res.status(400).json({ message: "No active session" });
         } catch (err) {
-            appLogger.error("Logout error", { error: err.message, stack: err.stack, session_id: sessionId });
+            appLogger.error("Logout failed", { error: err.message, session_id: sessionId });
             res.status(500).json({ message: "Internal Server Error" });
         }
     }
 
     static async getCurrentUser(req, res) {
-        appLogger.info("Fetching current user");
         if (req.user) {
-            appLogger.info("Current user found", { user_id: req.user.id, email: req.user.email });
             res.json({ user: req.user });
         } else {
-            appLogger.info("No user is currently logged in");
             res.status(401).json({ message: "Not logged in" });
         }
     }
