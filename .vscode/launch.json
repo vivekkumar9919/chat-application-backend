@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Launch Node App",
+        "program": "${workspaceFolder}/index.js",
+        "console": "internalConsole",
+        "restart": false,
+        "outputCapture": "std" 
+      }
+    ]
+  }
+  

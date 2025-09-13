@@ -1,4 +1,5 @@
-const logger = require('../utils/logger')
+const Logger = require('../utils/logger')
+const {socketLogger} = require('../utils/logger/index')
 
 class SocketManager {
     constructor(io) {
@@ -9,7 +10,7 @@ class SocketManager {
   
     registerEvents() {
       this.io.on("connection", (socket) => {
-        console.log(`User connected: ${socket.id}`);
+        socketLogger.info("User connected:", {socket_id:socket.id});
         socket.emit("ping", "Pinging you......");
   
         // User joins
@@ -35,7 +36,7 @@ class SocketManager {
             }
           }
           this.io.emit("onlineUsers", Array.from(this.onlineUsers.keys()));
-          logger.info(`User disconnected: ${socket.id}`);
+          socketLogger.info("User disconnected:" ,{socket_id:socket.id});
         });
       });
     }

@@ -1,6 +1,8 @@
 // scripts/dbSetup.js
 const { Pool } = require("pg");
 require("dotenv").config();
+const Logger = require('../utils/logger')
+const databaseLogger = new Logger('Database');
 
 const pool = new Pool({
   user: process.env.PG_USER || "root",
@@ -24,9 +26,9 @@ async function createTables() {
       )
     `);
 
-    console.log("✅ Tables created/verified successfully");
+    databaseLogger.info("✅ Tables created/verified successfully");
   } catch (err) {
-    console.error("❌ Error creating tables:", err.message);
+    databaseLogger.error("❌ Error creating tables:", err.message);
   } finally {
     await pool.end();
   }
