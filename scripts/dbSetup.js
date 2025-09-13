@@ -5,11 +5,11 @@ const Logger = require('../utils/logger')
 const databaseLogger = new Logger('Database');
 
 const pool = new Pool({
-  user: process.env.DB_USER || "myuser",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "chatapplication",
-  password: process.env.DB_PASSWORD || "mypassword",
-  port: process.env.DB_PORT || 5432,
+  user: process.env.PG_USER || "root",
+  host: process.env.PG_HOST || "localhost",
+  database: process.env.PG_DATABASE || "chatapplication",
+  password: process.env.PG_PASSWORD || "root",
+  port: process.env.PG_PORT || 5432,
 });
 
 async function createTables() {
