@@ -2,8 +2,11 @@ const dotenv = require('dotenv');
 const http = require("http");
 const { Server } = require("socket.io");
 const App = require("./app");
-const logger = require('./utils/logger')
+const Logger = require('./utils/logger')
+const appLogger = new Logger("App")
 const SocketManager = require("./sockets/socketManager");
+
+
 
 const PORT = process.env.PORT || 5000;
 
@@ -23,5 +26,5 @@ const io = new Server(server, {
 new SocketManager(io);
 
 server.listen(PORT, () => {
-    logger.info(`🚀 Server running on port ${PORT}`);
+  appLogger.info(`🚀 Server running on port ${PORT}`);
 });
