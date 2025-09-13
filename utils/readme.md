@@ -58,7 +58,7 @@ appLogger.info("🚀 Server running on port 5000");
 appLogger.error("Database connection failed");
 appLogger.warn("Redis cache is not responding");
 appLogger.debug("User object details: {...}");
-socketLogger.info(`User connected: ${socket.id}`);
+socketLogger.info("User connected:", {socket_id:socket.id});;
 ```
 
 ### Output
@@ -67,5 +67,5 @@ socketLogger.info(`User connected: ${socket.id}`);
 
 ```text
 2025-09-13 13:40:48 [App] [INFO] 🚀 Server running on port 5000
-2025-09-13 13:40:49 [Socket] [INFO] User connected: nbDUlC78hwGAH42WAAAB
+2025-09-13 14:17:21 [Socket] [INFO] User connected: {"socket_id":"dKUIsJtr-WUthU-yAAAB"}
 ```

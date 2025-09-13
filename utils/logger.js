@@ -11,6 +11,7 @@ class Logger {
     this.logger = createLogger({
       level: process.env.LOG_LEVEL || "info",
       transports: [
+        // Console transport
         new transports.Console({
           format: format.combine(
             format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
@@ -40,14 +41,24 @@ class Logger {
     });
   }
 
-  log(level = "info", message) {
+  log(level = "info", ...args) {
+    const message = args
+      .map(arg => {
+        if (typeof arg === "object") {
+          try { return JSON.stringify(arg); }
+          catch { return String(arg); }
+        }
+        return String(arg);
+      })
+      .join(" ");
+    
     this.logger.log(level, message);
   }
 
-  info(message) { this.log("info", message); }
-  error(message) { this.log("error", message); }
-  warn(message) { this.log("warn", message); }
-  debug(message) { this.log("debug", message); }
+  info(...args) { this.log("info", ...args); }
+  error(...args) { this.log("error", ...args); }
+  warn(...args) { this.log("warn", ...args); }
+  debug(...args) { this.log("debug", ...args); }
 }
 
 module.exports = Logger;

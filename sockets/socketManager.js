@@ -10,7 +10,7 @@ class SocketManager {
   
     registerEvents() {
       this.io.on("connection", (socket) => {
-        socketLogger.info(`User connected: ${socket.id}`);
+        socketLogger.info("User connected:", {socket_id:socket.id});
         socket.emit("ping", "Pinging you......");
   
         // User joins
@@ -36,7 +36,7 @@ class SocketManager {
             }
           }
           this.io.emit("onlineUsers", Array.from(this.onlineUsers.keys()));
-          socketLogger.info(`User disconnected: ${socket.id}`);
+          socketLogger.info("User disconnected:" ,{socket_id:socket.id});
         });
       });
     }
