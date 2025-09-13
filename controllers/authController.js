@@ -41,7 +41,6 @@ class AuthController {
     static async login(req, res) {
         const { email, password } = req.body;
         try {
-
             if (!email || !password) {
                 return res.status(400).json({ message: "Email and password are required" });
             }
@@ -91,8 +90,8 @@ class AuthController {
     }
 
     static async logout(req, res) {
+        const sessionId = req.cookies.sessionId;
         try {
-            const sessionId = req.cookies.sessionId;
             if (sessionId) {
                 await SessionService.deleteSession(sessionId); // Delete session from Redis
                 res.clearCookie("sessionId"); // Clear the cookie
