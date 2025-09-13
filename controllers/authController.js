@@ -5,8 +5,8 @@ const { generateUniqueSessionId } = require("../utils/common");
 const SessionService = require("../services/sessionService");
 class AuthController {
     static async signup(req, res) {
+        const { username, email, password } = req.body;
         try {
-            const { username, email, password } = req.body;
             appLogger.info("Signup attempt", { email });
 
             if (!username || !email || !password) {
@@ -42,8 +42,8 @@ class AuthController {
     }
 
     static async login(req, res) {
+        const { email, password } = req.body;
         try {
-            const { email, password } = req.body;
             appLogger.info("Login attempt", { email });
 
             if (!email || !password) {
@@ -57,7 +57,7 @@ class AuthController {
                 return res.status(400).json({ message: "Invalid email or password" });
             }
 
-            const isValidPassword = await AuthService.validatePassword(password, user.password);
+            const isValidPassword = await AuthService.validatePassword(password, user.password, email);
             if (!isValidPassword) {
                 appLogger.info("Login attempt with incorrect password", { email });
                 return res.status(400).json({ message: "Invalid email or password" });
@@ -96,8 +96,8 @@ class AuthController {
     }
 
     static async logout(req, res) {
+        const sessionId = req?.cookies?.sessionId;
         try {
-            const sessionId = req.cookies.sessionId;
             if (sessionId) {
                 await SessionService.deleteSession(sessionId); // Delete session from Redis
                 res.clearCookie("sessionId"); // Clear the cookie

@@ -46,7 +46,7 @@ class AuthService {
         }
     }
 
-    static async validatePassword(inputPassword, storedHashedPassword) {
+    static async validatePassword(inputPassword, storedHashedPassword, email) {
         try {
             databaseLogger.info("Validating password in AuthService", { email });
             const isValid = await comparePassword(inputPassword, storedHashedPassword);
