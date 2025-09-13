@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const pool = require("../connections/postgres/index");
-const Logger = require("../utils/logger");
+const { databaseLogger } = require("../utils/logger/index");
 const { hashPassword, comparePassword } = require("../utils/authHelpers");
 class AuthService {
     constructor() {
@@ -9,7 +9,7 @@ class AuthService {
 
     static async registerUser(username, email, password) {
         try {
-            Logger.info("Registering user in AuthService...");
+            databaseLogger.info("Registering user in AuthService", { email, username });
             //encrypt password
             const hashedPassword = await hashPassword(password);
 
@@ -20,41 +20,41 @@ class AuthService {
         `;
 
             const values = [username, email, hashedPassword];
-            Logger.info("Executing query to register user...");
+            databaseLogger.info("Executing query to register user", { email });
             //execute query
             const result = await pool.query(query, values);
-            Logger.info("User registered successfully in database.");
+            databaseLogger.info("User registered successfully in database", { user_id: result.rows[0].id, email });
             return result.rows[0];
         }
         catch (err) {
-            Logger.error("Error in registerUser: ", err);
+            databaseLogger.error("Error in registerUser", { error: err.message, stack: err.stack, email });
             throw err;
         }
     }
 
     static async findUserByEmail(email) {
         try {
-            Logger.info("Finding user by email in AuthService...");
+            databaseLogger.info("Finding user by email in AuthService", { email });
             const query = `SELECT * FROM users WHERE email = $1`;
             const result = await pool.query(query, [email]);
-            Logger.info("User found by email in AuthService.");
+            databaseLogger.info("User found by email in AuthService", { email, user_found: !!result.rows[0] });
             return result.rows[0];
         }
         catch (err) {
-            Logger.error("Error in findUserByEmail: ", err);
+            databaseLogger.error("Error in findUserByEmail", { error: err.message, stack: err.stack, email });
             throw err;
         }
     }
 
     static async validatePassword(inputPassword, storedHashedPassword) {
         try {
-            Logger.info("Validating password in AuthService...");
+            databaseLogger.info("Validating password in AuthService", { email });
             const isValid = await comparePassword(inputPassword, storedHashedPassword);
-            Logger.info(`Password validation result: ${isValid}`);
+            databaseLogger.info("Password validation result", { email, is_valid: isValid });
             return isValid;
         }
         catch (err) {
-            Logger.error("Error in validatePassword: ", err);
+            databaseLogger.error("Error in validatePassword", { error: err.message, stack: err.stack, email });
             throw err;
         }
     }

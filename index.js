@@ -25,5 +25,5 @@ const io = new Server(server, {
 new SocketManager(io);
 
 server.listen(PORT, () => {
-  appLogger.info(`🚀 Server running on port ${PORT}`);
+  appLogger.info("Server started successfully", { port: PORT, environment: process.env.NODE_ENV || 'development' });
 });
