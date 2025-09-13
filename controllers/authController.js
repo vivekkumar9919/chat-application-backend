@@ -1,6 +1,8 @@
 const AuthService = require("../services/authService");
 const Logger = require("../utils/logger");
 const redisClient = require("../connections/redis/index");
+const { generateUniqueSessionId } = require("../utils/common");
+const SessionService = require("../services/sessionService");
 class AuthController {
     static async signup(req, res) {
         try {
@@ -20,20 +22,6 @@ class AuthController {
             Logger.info("Registering new user...");
             const newUser = await AuthService.registerUser(username, email, password);
             Logger.info(`User registered successfully: ${email}`);
-
-            const sessionId = Math.floor(Math.random() * (100000 - 10000 + 1)) + 10000;
-            const sessionData = {
-                id: newUser.id,
-                email: newUser.email,
-            };
-
-            await redisClient.set(`sess:${sessionId}`, JSON.stringify(sessionData), "EX", 86400);
-
-            res.cookie("sessionId", sessionId, {
-                httpOnly: true,
-                secure: false, // Set to true in production with HTTPS
-                maxAge: 1000 * 60 * 60 * 24, // 1 day
-            });
 
             res.status(201).json({
                 message: "User registered successfully",
@@ -77,20 +65,19 @@ class AuthController {
             }
 
             // Generate a unique session ID
-            const sessionId = Math.floor(Math.random() * (100000 - 10000 + 1)) + 10000;
+            const sessionId = generateUniqueSessionId();
             const sessionData = {
                 id: user.id,
                 email: user.email,
             };
 
             // Store session data in Redis with a TTL (1 day = 86400 seconds)
-            await redisClient.set(`sess:${sessionId}`, JSON.stringify(sessionData), "EX", 86400);
-
+            await SessionService.createSession(sessionId, sessionData, process.env.REDIS_SESSION_TTL || 86400);
             // Set session ID in a cookie
             res.cookie("sessionId", sessionId, {
                 httpOnly: true,
                 secure: false, // Set to true in production with HTTPS
-                maxAge: 1000 * 60 * 60 * 24, // 1 day
+                maxAge: process.env.COOKIE_MAX_AGE || 86400000, // 1 day
             });
 
             Logger.info(`User logged in successfully: ${email}`);
@@ -114,7 +101,7 @@ class AuthController {
         try {
             const sessionId = req.cookies.sessionId;
             if (sessionId) {
-                await redisClient.del(`sess:${sessionId}`); // Delete session from Redis
+                await SessionService.deleteSession(sessionId); // Delete session from Redis
                 res.clearCookie("sessionId"); // Clear the cookie
                 Logger.info("User logged out successfully");
                 return res.status(200).json({ message: "Logout successful" });
