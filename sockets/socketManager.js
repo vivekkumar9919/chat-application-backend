@@ -1,5 +1,5 @@
 const Logger = require('../utils/logger')
-const socketLogger = new Logger('Socket');
+const {socketLogger} = require('../utils/logger/index')
 
 class SocketManager {
     constructor(io) {

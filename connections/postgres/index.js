@@ -1,7 +1,6 @@
 const { Pool } = require("pg");
 require("dotenv").config();
-const Logger = require('../../utils/logger');
-const dbLogger = new Logger("Database");
+const databaseLogger =require('../../utils/logger/index');
 
 const pool = new Pool({
   user: process.env.PG_USER,
@@ -12,7 +11,7 @@ const pool = new Pool({
 });
 
 pool.on("connect", () => {
-    dbLogger.info("Connected to PostgreSQL database");
+  databaseLogger.info("Connected to PostgreSQL database");
 });
 
 module.exports = pool;

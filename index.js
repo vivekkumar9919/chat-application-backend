@@ -2,8 +2,7 @@ const dotenv = require('dotenv');
 const http = require("http");
 const { Server } = require("socket.io");
 const App = require("./app");
-const Logger = require('./utils/logger')
-const appLogger = new Logger("App")
+const { appLogger } = require('./utils/logger/index')
 const SocketManager = require("./sockets/socketManager");
 
 
