@@ -1,5 +1,5 @@
 const SessionService = require("../services/sessionService");
-const Logger = require("../utils/logger");
+const { appLogger } = require("../utils/logger/index");
 
 
 /**
@@ -16,7 +16,7 @@ async function attachSession(req, res, next) {
         req.user = sessionData; // ✅ attach user/session payload
       }
     } catch (err) {
-      Logger.error("Redis session retrieval error:", err);
+      appLogger.error("Redis session retrieval error", { error: err.message, stack: err.stack, session_id: sessionId });
     }
   }
 

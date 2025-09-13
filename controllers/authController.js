@@ -1,27 +1,24 @@
 const AuthService = require("../services/authService");
-const Logger = require("../utils/logger");
+const { appLogger } = require("../utils/logger/index");
 const redisClient = require("../connections/redis/index");
 const { generateUniqueSessionId } = require("../utils/common");
 const SessionService = require("../services/sessionService");
 class AuthController {
     static async signup(req, res) {
+        const { username, email, password } = req.body;
         try {
-            const { username, email, password } = req.body;
-            Logger.info(`Signup attempt for email: ${email}`);
-
             if (!username || !email || !password) {
-                Logger.info("Signup attempt with missing fields");
                 return res.status(400).json({ message: "All fields are required" });
             }
-            Logger.info("Checking if user already exists...");
+            
             const existingUser = await AuthService.findUserByEmail(email);
             if (existingUser) {
-                Logger.info(`Signup attempt with existing email: ${email}`);
+                appLogger.warn("Signup attempt with existing email", { email });
                 return res.status(400).json({ message: "User already exists" });
             }
-            Logger.info("Registering new user...");
+            
             const newUser = await AuthService.registerUser(username, email, password);
-            Logger.info(`User registered successfully: ${email}`);
+            appLogger.info("User registered successfully", { email, user_id: newUser.id });
 
             res.status(201).json({
                 message: "User registered successfully",
@@ -36,31 +33,27 @@ class AuthController {
 
         }
         catch (err) {
-            console.log(err);
-            Logger.error("Signup Error: ", err);
+            appLogger.error("Signup failed", { error: err.message, email });
             res.status(500).json({ message: "Internal Server Error" });
         }
     }
 
     static async login(req, res) {
+        const { email, password } = req.body;
         try {
-            const { email, password } = req.body;
-            Logger.info(`Login attempt for email: ${email}`);
-
             if (!email || !password) {
-                Logger.info("Login attempt with missing fields");
                 return res.status(400).json({ message: "Email and password are required" });
             }
 
             const user = await AuthService.findUserByEmail(email);
             if (!user) {
-                Logger.info(`Login attempt with non-existing email: ${email}`);
+                appLogger.warn("Login attempt with non-existing email", { email });
                 return res.status(400).json({ message: "Invalid email or password" });
             }
 
-            const isValidPassword = await AuthService.validatePassword(password, user.password);
+            const isValidPassword = await AuthService.validatePassword(password, user.password, email);
             if (!isValidPassword) {
-                Logger.info(`Login attempt with incorrect password for email: ${email}`);
+                appLogger.warn("Login attempt with incorrect password", { email });
                 return res.status(400).json({ message: "Invalid email or password" });
             }
 
@@ -80,7 +73,7 @@ class AuthController {
                 maxAge: process.env.COOKIE_MAX_AGE || 86400000, // 1 day
             });
 
-            Logger.info(`User logged in successfully: ${email}`);
+            appLogger.info("User logged in successfully", { email, user_id: user.id });
             res.status(200).json({
                 message: "Login successful",
                 user: {
@@ -91,36 +84,31 @@ class AuthController {
                 },
             });
         } catch (err) {
-            console.error(err);
-            Logger.error("Login Error: ", err);
+            appLogger.error("Login failed", { error: err.message, email });
             res.status(500).json({ message: "Internal Server Error" });
         }
     }
 
     static async logout(req, res) {
+        const sessionId = req.cookies.sessionId;
         try {
-            const sessionId = req.cookies.sessionId;
             if (sessionId) {
                 await SessionService.deleteSession(sessionId); // Delete session from Redis
                 res.clearCookie("sessionId"); // Clear the cookie
-                Logger.info("User logged out successfully");
+                appLogger.info("User logged out", { session_id: sessionId });
                 return res.status(200).json({ message: "Logout successful" });
             }
             return res.status(400).json({ message: "No active session" });
         } catch (err) {
-            console.error(err);
-            Logger.error("Logout Error: ", err);
+            appLogger.error("Logout failed", { error: err.message, session_id: sessionId });
             res.status(500).json({ message: "Internal Server Error" });
         }
     }
 
     static async getCurrentUser(req, res) {
-        Logger.info("Fetching current user...");
         if (req.user) {
-            Logger.info(`Current user found: ${req.user.email}`);
             res.json({ user: req.user });
         } else {
-            Logger.info("No user is currently logged in");
             res.status(401).json({ message: "Not logged in" });
         }
     }
