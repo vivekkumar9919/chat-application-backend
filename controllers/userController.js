@@ -1,5 +1,5 @@
 const UserService = require("../services/userService");
-const { appLogger } = require("../utils/logger/index");
+const { appLogger, databaseLogger } = require("../utils/logger/index");
 
 
 class UserController {
@@ -33,6 +33,19 @@ class UserController {
         catch(err){
             databaseLogger.error("Search user failed", { error: err.message });
             res.status(400).json({ error: err.message });
+        }
+    }
+
+    static async fetchAllUsers(req, res){
+        try{
+            appLogger.info("Fetching all users...");
+            const users = await UserService.getAllUsers();
+            appLogger.info(`Fetched ${users.length} users.`);
+            res.status(200).json(users);
+        }
+        catch(err){
+            databaseLogger.error("Fetch all users failed", { error: err.message });
+            res.status(500).json({ error: 'Internal Server Error' });
         }
     }
 }

@@ -51,7 +51,47 @@
      */
     router.get("/search", UserController.searchUserByUsername);
 
-
+    /**
+     * @swagger
+     * /users/fetchAll:
+     *   get:
+     *     summary: Fetch all users
+     *     description: Retrieves a list of all registered users from the system.
+     *     tags:
+     *       - Users
+     *     responses:
+     *       200:
+     *         description: A list of users retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 type: object
+     *                 properties:
+     *                   id:
+     *                     type: string
+     *                     example: "64afc2b9d1234567890abc12"
+     *                   name:
+     *                     type: string
+     *                     example: "Satyam Kumar"
+     *                   email:
+     *                     type: string
+     *                     example: "satyam@example.com"
+     *                   createdAt:
+     *                     type: string
+     *                     format: date-time
+     *                     example: "2025-09-23T12:34:56Z"
+     *                   updatedAt:
+     *                     type: string
+     *                     format: date-time
+     *                     example: "2025-09-23T12:34:56Z"
+     *       400:
+     *         description: Bad request
+     *       500:
+     *         description: Internal server error
+     */
+    router.get("/fetchAll", UserController.fetchAllUsers);
     
     /**
      * @swagger
@@ -94,6 +134,7 @@
      */
     router.get("/:id", UserController.fetchUserById);
 
+    
    
 
     module.exports = router;

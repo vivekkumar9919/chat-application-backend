@@ -30,6 +30,20 @@ class UserService {
       throw err;
     }
   }
+
+  static async getAllUsers(){
+    try{
+      databaseLogger.info("Fetching all users from database...");
+      const result = await db.query("SELECT id, username, email, created_at FROM users");
+      databaseLogger.info(`Fetched ${result.rows.length} users from database.`);
+      return result.rows;
+    }
+    catch(err){
+      databaseLogger.error("Get all users failed", { error: err.message });
+      throw err;
+    }
+
+  }
 }
 
 module.exports = UserService;
