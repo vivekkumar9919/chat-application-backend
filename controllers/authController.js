@@ -21,6 +21,8 @@ class AuthController {
             appLogger.info("User registered successfully", { email, user_id: newUser.id });
 
             res.status(201).json({
+                success: true,
+                status_code: 200,
                 message: "User registered successfully",
                 user: {
                     id: newUser.id,
@@ -76,6 +78,8 @@ class AuthController {
             appLogger.info("User logged in successfully", { email, user_id: user.id });
             res.status(200).json({
                 message: "Login successful",
+                success: true,
+                status_code: 200,
                 user: {
                     id: user.id,
                     email: user.email,
@@ -85,7 +89,7 @@ class AuthController {
             });
         } catch (err) {
             appLogger.error("Login failed", { error: err.message, email });
-            res.status(500).json({ message: "Internal Server Error" });
+            res.status(500).json({ message: "Internal Server Error", success: false });
         }
     }
 
@@ -96,9 +100,9 @@ class AuthController {
                 await SessionService.deleteSession(sessionId); // Delete session from Redis
                 res.clearCookie("sessionId"); // Clear the cookie
                 appLogger.info("User logged out", { session_id: sessionId });
-                return res.status(200).json({ message: "Logout successful" });
+                return res.status(200).json({ message: "Logout successful", success: true });
             }
-            return res.status(400).json({ message: "No active session" });
+            return res.status(400).json({ message: "No active session" , success: false});
         } catch (err) {
             appLogger.error("Logout failed", { error: err.message, session_id: sessionId });
             res.status(500).json({ message: "Internal Server Error" });
