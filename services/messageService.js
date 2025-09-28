@@ -23,16 +23,21 @@ class MessageService {
     }
   }
 
-  static async getMessages(conversationId) {
+  static async getMessages(conversationId, currentUserId) {
     try {
       const result = await db.query(
-        `SELECT m.id, m.message_text, m.status, m.created_at,
-                u.id AS sender_id, u.username
-         FROM messages m
-         JOIN users u ON m.sender_id = u.id
-         WHERE m.conversation_id = $1
-         ORDER BY m.created_at ASC`,
-        [conversationId]
+        `SELECT m.id,
+              m.message_text,
+              m.status,
+              m.created_at,
+              u.id AS sender_id,
+              u.username AS sender_name,
+              CASE WHEN m.sender_id = $2 THEN true ELSE false END AS "isOwn"
+       FROM messages m
+       JOIN users u ON m.sender_id = u.id
+       WHERE m.conversation_id = $1
+       ORDER BY m.created_at ASC`,
+        [conversationId, currentUserId] // <-- pass both values
       );
 
       return result.rows;

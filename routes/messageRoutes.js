@@ -62,6 +62,12 @@ router.post("/:id", MessageController.sendMessage);
  *                type: integer
  *            required: true
  *            description: Conversation ID
+ *          - in: query
+ *            name: userId
+ *            schema:
+ *                type: integer
+ *            required: true
+ *            description: User ID to filter messages
  *      responses:
  *          200:
  *              description: List of messages retrieved successfully
@@ -70,6 +76,6 @@ router.post("/:id", MessageController.sendMessage);
  *          500:
  *              description: Internal Server Error
  */
-router.get("/:id", MessageController.getMessages);
+router.get(`/:id`, MessageController.getMessages);
 
 module.exports = router;

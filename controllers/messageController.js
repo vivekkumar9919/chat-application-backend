@@ -24,7 +24,8 @@ class MessageController {
     try {
         console.log("req");
       const { id } = req.params; // conversation_id
-      const messages = await MessageService.getMessages(id);
+      const userId = req.query.userId; // current user ID from query params
+      const messages = await MessageService.getMessages(id, userId);
       res.json(messages);
     } catch (err) {
         console.log(err);
