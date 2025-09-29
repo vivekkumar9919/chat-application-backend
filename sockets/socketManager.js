@@ -11,7 +11,9 @@ class SocketManager {
       this.io.on("connection", (socket) => {
         socketLogger.info("User connected:", {socket_id:socket.id});
         socket.emit("ping", "Pinging you......");
-  
+        socket.on("pong", (msg) => {
+          socketLogger.info("Pong received from client:", {socket_id:socket.id, message: msg});
+        })
         // User joins
         socket.on("join", (userId) => {
           this.onlineUsers.set(userId, socket.id);
