@@ -13,14 +13,17 @@ class ConversationController {
 
       const conversation = await ConversationService.createConversation(type, userIds);
 
-      return ResponseHandler.success(res, 201, "Conversation created successfully", {
-        conversation,
-      });
+      if (conversation.isExisting) {
+        return ResponseHandler.success(res, 200, "Conversation already exists", { conversation });
+      }
+
+      return ResponseHandler.success(res, 201, "Conversation created successfully", { conversation });
     } catch (err) {
       databaseLogger.error("Create conversation failed", { error: err.message });
       return ResponseHandler.error(res, 500, "Failed to create conversation", err.message);
     }
   }
+
 
   static async getUserConversations(req, res) {
     try {

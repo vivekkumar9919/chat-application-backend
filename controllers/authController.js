@@ -3,6 +3,7 @@ const { appLogger } = require("../utils/logger/index");
 const { generateUniqueSessionId } = require("../utils/common");
 const SessionService = require("../services/sessionService");
 const ResponseHandler = require("../utils/responseHandler");
+const { profile } = require("winston");
 
 class AuthController {
   static async signup(req, res) {
@@ -26,6 +27,7 @@ class AuthController {
           id: newUser.id,
           email: newUser.email,
           username: newUser.username,
+          avatar: newUser.profile_pic,
           created_at: newUser.created_at,
           updated_at: newUser.updated_at,
         },
@@ -77,6 +79,7 @@ class AuthController {
           email: user.email,
           name: user.name,
           username: user.username,
+          avatar: user.profile_pic,
           created_at: user.created_at,
           updated_at: user.updated_at,
         },
