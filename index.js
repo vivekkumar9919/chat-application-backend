@@ -1,4 +1,5 @@
 const dotenv = require('dotenv');
+dotenv.config();
 const http = require("http");
 const { Server } = require("socket.io");
 const App = require("./app");
