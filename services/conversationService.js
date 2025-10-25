@@ -8,6 +8,40 @@ class ConversationService {
   try {
     await client.query("BEGIN");
 
+    // For direct conversations, check if conversation already exists
+    if (type === 'direct' && userIds.length === 2) {
+      const existingConversation = await client.query(`
+        SELECT c.id, c.type
+        FROM conversations c
+        WHERE c.type = 'direct'
+        AND c.id IN (
+          SELECT cp1.conversation_id
+          FROM conversation_participants cp1
+          WHERE cp1.user_id = $1
+          INTERSECT
+          SELECT cp2.conversation_id
+          FROM conversation_participants cp2
+          WHERE cp2.user_id = $2
+        )
+        AND (
+          SELECT COUNT(*)
+          FROM conversation_participants cp
+          WHERE cp.conversation_id = c.id
+        ) = 2
+      `, [userIds[0], userIds[1]]);
+
+      if (existingConversation.rows.length > 0) {
+        await client.query("COMMIT");
+        return { 
+          conversationId: existingConversation.rows[0].id, 
+          type, 
+          name, 
+          participants: userIds,
+          isExisting: true 
+        };
+      }
+    }
+
     // Insert new conversation with optional name
     const queryText = `
       INSERT INTO conversations (type, name, created_at)
@@ -27,7 +61,7 @@ class ConversationService {
     }
 
     await client.query("COMMIT");
-    return { conversationId, type, name, participants: userIds };
+    return { conversationId, type, name, participants: userIds, isExisting: false };
   } catch (err) {
     await client.query("ROLLBACK");
     databaseLogger.error("Create conversation failed", { error: err.message });
@@ -71,25 +105,38 @@ static async getConversationsByUser(userId) {
           ELSE NULL
         END AS other_user_id,
 
-        -- Avatar (group or direct)
+       -- Avatar (group or direct)
         CASE 
-          WHEN c.type = 'direct' THEN (
+         WHEN c.type = 'direct' THEN (
             SELECT u.profile_pic
             FROM conversation_participants cp2
-            JOIN users u ON u.id = cp2.user_id
+             JOIN users u ON u.id = cp2.user_id
             WHERE cp2.conversation_id = c.id 
-              AND cp2.user_id != $1
-            LIMIT 1
-          )
+               AND cp2.user_id != $1
+             LIMIT 1
+           )
           ELSE c.avatar_url
-        END AS avatar_url,
+          END AS avatar,
+
+        --   CASE 
+         --    WHEN c.type = 'direct' THEN NULL
+         --  ELSE c.avatar_url
+         --    END AS avatar,
+
 
         -- Last message
         m.message_text AS last_message,
         m.created_at AS last_message_at,
         
         -- Unread message count
-        COALESCE(unread.count, 0) AS unread_count
+        COALESCE(unread.count, 0) AS unread_count,
+
+        -- Participants array
+        ARRAY(
+          SELECT cp3.user_id
+          FROM conversation_participants cp3
+          WHERE cp3.conversation_id = c.id
+        ) AS participants
 
       FROM conversations c
       JOIN conversation_participants cp ON c.id = cp.conversation_id

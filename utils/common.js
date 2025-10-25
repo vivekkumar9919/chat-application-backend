@@ -1,6 +1,8 @@
 
 function generateUniqueSessionId(){
-    return Math.floor(Math.random() * (100000 - 10000 + 1)) + 10000;
+    // Generate a more secure session ID using crypto
+    const crypto = require('crypto');
+    return crypto.randomBytes(32).toString('hex');
 }
 
 module.exports = { generateUniqueSessionId };

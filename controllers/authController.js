@@ -69,6 +69,14 @@ class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // secure only in prod
         maxAge: process.env.COOKIE_MAX_AGE || 86400000, // 1 day
+        sameSite: 'lax', // Allow cross-site requests
+        path: '/', // Make cookie available for all paths
+      });
+      
+      appLogger.info("Session cookie set", { 
+        sessionId: sessionId.substring(0, 8) + '...', 
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production"
       });
 
       appLogger.info("User logged in successfully", { email, user_id: user.id });
