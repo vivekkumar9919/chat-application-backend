@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
+const conversationRoutes = require('./routes/conversationRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+const userRoutes = require('./routes/userRoutes');
 const redisClient = require("./connections/redis/index");
 const cookieParser = require("cookie-parser"); // For handling cookies
 const swaggerDocs = require("./config/swagger");
@@ -34,6 +37,9 @@ class App {
     });
 
     this.app.use("/api/v1/auth", authRoutes);
+    this.app.use("/api/v1/conversations", conversationRoutes);
+    this.app.use("/api/v1/messages", messageRoutes);
+    this.app.use("/api/v1/users", userRoutes);
   }
 
   swagger(){
