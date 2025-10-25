@@ -5,22 +5,22 @@ const pool = require("../connections/postgres/index"); // ✅ Postgres pool wrap
 class AuthService {
   constructor() {}
 
-  static async registerUser(username, email, password) {
+  static async registerUser(username, name, email, password, profile_pic) {
     try {
       const hashedPassword = await hashPassword(password);
 
       // Insert user and return new ID
       const insertQuery = `
-        INSERT INTO users (username, email, password)
-        VALUES ($1, $2, $3)
+        INSERT INTO users (username, name, email, password, profile_pic)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING id
       `;
-      const insertResult = await pool.query(insertQuery, [username, email, hashedPassword]);
+      const insertResult = await pool.query(insertQuery, [username, name, email, hashedPassword, profile_pic]);
       const userId = insertResult.rows[0].id;
 
       // Fetch the newly created user
       const selectQuery = `
-        SELECT id, username, name, email, created_at, updated_at
+        SELECT id, username, name, email, created_at, updated_at, profile_pic
         FROM users WHERE id = $1
       `;
       const selectResult = await pool.query(selectQuery, [userId]);

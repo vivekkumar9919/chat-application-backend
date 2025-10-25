@@ -7,7 +7,7 @@ const { profile } = require("winston");
 
 class AuthController {
   static async signup(req, res) {
-    const { username, email, password } = req.body;
+    const { username, email, password, profile_pic = "https://messagewebapp.s3.ap-south-1.amazonaws.com/default-img.png" } = req.body;
     try {
       if (!username || !email || !password) {
         return ResponseHandler.error(res, 400, "All fields are required");
@@ -19,7 +19,7 @@ class AuthController {
         return ResponseHandler.error(res, 400, "User already exists");
       }
 
-      const newUser = await AuthService.registerUser(username, email, password);
+      const newUser = await AuthService.registerUser(username, username, email, password, profile_pic);
       appLogger.info("User registered successfully", { email, user_id: newUser.id });
 
       return ResponseHandler.success(res, 201, "User registered successfully", {
@@ -27,6 +27,7 @@ class AuthController {
           id: newUser.id,
           email: newUser.email,
           username: newUser.username,
+          name: newUser.name,
           avatar: newUser.profile_pic,
           created_at: newUser.created_at,
           updated_at: newUser.updated_at,
