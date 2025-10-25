@@ -20,7 +20,7 @@ class AuthService {
 
       // Fetch the newly created user
       const selectQuery = `
-        SELECT id, username, email, created_at, updated_at
+        SELECT id, username, name, email, created_at, updated_at
         FROM users WHERE id = $1
       `;
       const selectResult = await pool.query(selectQuery, [userId]);
@@ -48,6 +48,20 @@ class AuthService {
       return await comparePassword(inputPassword, storedHashedPassword);
     } catch (err) {
       databaseLogger.error("Password validation failed", { error: err.message, email });
+      throw err;
+    }
+  }
+
+  static async updateUser(userId, fields){
+    try{
+      const user = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+      if(!user.rows.length){
+        throw new Error("User not found");
+      }
+      const existingUser = user.rows[0];
+    }
+    catch(err){
+      databaseLogger.error("Update user failed", { error: err.message, userId });
       throw err;
     }
   }

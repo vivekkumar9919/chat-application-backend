@@ -52,6 +52,8 @@ async function createDatabaseAndTables() {
         name VARCHAR(250),
         email VARCHAR(150) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
+        profile_pic VARCHAR(255),
+        bio TEXT,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )
@@ -63,6 +65,7 @@ async function createDatabaseAndTables() {
         id SERIAL PRIMARY KEY,
         type VARCHAR(50) NOT NULL,
         name VARCHAR(150),
+        avatar_url VARCHAR(255),
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
