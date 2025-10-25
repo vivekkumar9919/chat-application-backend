@@ -4,8 +4,10 @@ const { v4: uuidv4 } = require("uuid");
 const s3Client = require("../config/s3");
 const { ALLOWED_IMAGE_FORMATS, MAX_IMAGE_SIZE } = require("../constants/constants");
 
-function generateUniqueSessionId() {
-    return Math.floor(Math.random() * (100000 - 10000 + 1)) + 10000;
+function generateUniqueSessionId(){
+    // Generate a more secure session ID using crypto
+    const crypto = require('crypto');
+    return crypto.randomBytes(32).toString('hex');
 }
 
 async function uploadToS3(file, userId) {

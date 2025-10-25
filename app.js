@@ -19,7 +19,7 @@ class App {
 
   middlewares() {
     this.app.use(cors({
-      origin: "*", // frontend URL
+      origin: process.env.FRONTEND_URL || "http://localhost:5173", // frontend URL
       credentials: true, // allow cookies
     }));
     this.app.use(express.json());
