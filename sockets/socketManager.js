@@ -3,6 +3,7 @@ const MessageService = require('../services/messageService')
 const { databaseLogger } = require('../utils/logger/index')
 const SessionService = require('../services/sessionService')
 const UserService = require('../services/userService')
+const ConversationService = require('../services/conversationService')
 
 class SocketManager {
     constructor(io) {
@@ -97,6 +98,9 @@ class SocketManager {
               conversation_id: conversationId,
               isOwn: false // Will be set to true on sender's side
             };
+
+            const conversationReceiverData = await ConversationService.getConversationsByUser(receiverId);
+
             
             // Send to receiver if online
             const receiverSocketId = this.onlineUsers.get(receiverId);
@@ -107,6 +111,12 @@ class SocketManager {
                 to: receiverId, 
                 message_id: savedMessage.messageId 
               });
+
+
+
+              this.io.to(receiverSocketId).emit(`newMessageNotification`, conversationReceiverData);
+              socketLogger.info("Sent new message notification", { receiverId, conversation: conversationReceiverData });
+
             }
             
             // Send confirmation to sender
