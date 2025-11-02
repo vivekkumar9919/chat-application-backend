@@ -7,7 +7,7 @@ class UserService {
   static async getUserById(id) {
     try {
       const result = await db.query(
-        "SELECT id, username, email, created_at FROM users WHERE id = $1",
+        "SELECT id, username, email, profile_pic, created_at, updated_at FROM users WHERE id = $1",
         [id]
       );
       return result.rows[0];
@@ -44,6 +44,38 @@ class UserService {
     }
 
   }
+
+  static async updateProfilePic(userId, profilePicUrl) {
+    try {
+      databaseLogger.info("Updating profile picture", { userId, profilePicUrl });
+      const updateQuery = `
+      UPDATE users
+      SET profile_pic = $1,
+          updated_at = NOW()
+      WHERE id = $2
+      RETURNING id, username, name, email, profile_pic, updated_at
+    `;
+
+      const result = await db.query(updateQuery, [profilePicUrl, userId]);
+      databaseLogger.info("Profile pic update query executed", { userId });
+      if (result.rowCount === 0) {
+        databaseLogger.warn("User not found for profile pic update", { userId });
+        throw new Error("User not found");
+      }
+
+      databaseLogger.info("User profile picture updated successfully", {
+        userId,
+        profilePicUrl,
+      });
+
+      return result.rows[0];
+    }
+    catch (err) {
+      databaseLogger.error("Profile pic update failed", { error: err.message, userId });
+      throw err;
+    }
+  }
+
 }
 
 module.exports = UserService;

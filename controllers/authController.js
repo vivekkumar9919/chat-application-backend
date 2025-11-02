@@ -4,10 +4,11 @@ const { generateUniqueSessionId } = require("../utils/common");
 const SessionService = require("../services/sessionService");
 const ResponseHandler = require("../utils/responseHandler");
 const { profile } = require("winston");
+const { DEFAULT_PROFIL_URL } = require("../constants/constants");
 
 class AuthController {
   static async signup(req, res) {
-    const { username, email, password } = req.body;
+    const { username, email, password, profile_pic = DEFAULT_PROFIL_URL } = req.body;
     try {
       if (!username || !email || !password) {
         return ResponseHandler.error(res, 400, "All fields are required");
@@ -19,7 +20,7 @@ class AuthController {
         return ResponseHandler.error(res, 400, "User already exists");
       }
 
-      const newUser = await AuthService.registerUser(username, email, password);
+      const newUser = await AuthService.registerUser(username, username, email, password, profile_pic);
       appLogger.info("User registered successfully", { email, user_id: newUser.id });
 
       return ResponseHandler.success(res, 201, "User registered successfully", {
@@ -27,6 +28,7 @@ class AuthController {
           id: newUser.id,
           email: newUser.email,
           username: newUser.username,
+          name: newUser.name,
           avatar: newUser.profile_pic,
           created_at: newUser.created_at,
           updated_at: newUser.updated_at,
@@ -69,6 +71,14 @@ class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // secure only in prod
         maxAge: process.env.COOKIE_MAX_AGE || 86400000, // 1 day
+        sameSite: 'lax', // Allow cross-site requests
+        path: '/', // Make cookie available for all paths
+      });
+      
+      appLogger.info("Session cookie set", { 
+        sessionId: sessionId.substring(0, 8) + '...', 
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production"
       });
 
       appLogger.info("User logged in successfully", { email, user_id: user.id });
