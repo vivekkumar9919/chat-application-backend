@@ -4,10 +4,11 @@ const { generateUniqueSessionId } = require("../utils/common");
 const SessionService = require("../services/sessionService");
 const ResponseHandler = require("../utils/responseHandler");
 const { profile } = require("winston");
+const { DEFAULT_PROFIL_URL } = require("../constants/constants");
 
 class AuthController {
   static async signup(req, res) {
-    const { username, email, password, profile_pic = "https://messagewebapp.s3.ap-south-1.amazonaws.com/default-img.png" } = req.body;
+    const { username, email, password, profile_pic = DEFAULT_PROFIL_URL } = req.body;
     try {
       if (!username || !email || !password) {
         return ResponseHandler.error(res, 400, "All fields are required");
