@@ -4,6 +4,7 @@ const authRoutes = require("./routes/authRoutes");
 const conversationRoutes = require('./routes/conversationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const userRoutes = require('./routes/userRoutes');
+const pushRoutes = require('./routes/pushRoutes');
 const redisClient = require("./connections/redis/index");
 const cookieParser = require("cookie-parser"); // For handling cookies
 const swaggerDocs = require("./config/swagger");
@@ -40,6 +41,7 @@ class App {
     this.app.use("/api/v1/conversations", conversationRoutes);
     this.app.use("/api/v1/messages", messageRoutes);
     this.app.use("/api/v1/users", userRoutes);
+    this.app.use("/api/v1/push", pushRoutes);
   }
 
   swagger(){

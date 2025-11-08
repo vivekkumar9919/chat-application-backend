@@ -4,6 +4,7 @@ const { databaseLogger } = require('../utils/logger/index')
 const SessionService = require('../services/sessionService')
 const UserService = require('../services/userService')
 const ConversationService = require('../services/conversationService')
+const { sendPushToUser } = require('../utils/pushNotification')
 
 class SocketManager {
     constructor(io) {
@@ -87,7 +88,7 @@ class SocketManager {
             
             // Get sender info from socket (already authenticated)
             const senderInfo = socket.userInfo || { id: senderId, username: 'Unknown' };
-            
+            socketLogger.info("Sender info received", {senderInfo: senderInfo});
             // Prepare message data for real-time delivery
             const messageData = {
               id: savedMessage.messageId,
@@ -128,6 +129,16 @@ class SocketManager {
               message_id: savedMessage.messageId,
               conversation_id: conversationId
             });
+
+            //send push notification to subscribed user 
+            const payload = {
+              title: `New message from ${senderInfo.username || senderInfo?.name}`,
+              message: messageText,
+              icon: senderInfo.profile_pic || "/logo192.png",
+            };
+            await sendPushToUser(receiverId, payload);
+            socketLogger.info("Sent web push notification", { to: receiverId });
+            
             
           } catch (error) {
             socketLogger.error("Failed to send message", { 
