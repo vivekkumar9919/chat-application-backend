@@ -1,4 +1,5 @@
 const dotenv = require('dotenv');
+dotenv.config();
 const http = require("http");
 const { Server } = require("socket.io");
 const App = require("./app");
@@ -14,7 +15,7 @@ const server = http.createServer(appInstance.getApp());
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
     methods: ["GET", "POST", "PATCH", "DELETE"],
     transports: ["websocket", "polling"],
     credentials: true,
@@ -25,5 +26,5 @@ const io = new Server(server, {
 new SocketManager(io);
 
 server.listen(PORT, () => {
-  appLogger.info(`🚀 Server running on port ${PORT}`);
+  appLogger.info("Server started successfully", { port: PORT, environment: process.env.NODE_ENV || 'development' });
 });

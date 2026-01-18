@@ -1,17 +1,29 @@
 const { Pool } = require("pg");
-require("dotenv").config();
-const databaseLogger =require('../../utils/logger/index');
+const { databaseLogger } = require("../../utils/logger/index");
 
+// Create a new pool instance
 const pool = new Pool({
-  user: process.env.PG_USER,
-  host: process.env.PG_HOST,
-  database: process.env.PG_DATABASE,
-  password: process.env.PG_PASSWORD,
-  port: process.env.PG_PORT,
+  host: process.env.PG_HOST || "localhost",
+  port: process.env.PG_PORT || 5432,
+  user: process.env.PG_USER || "postgres",
+  password: process.env.PG_PASSWORD || "root",
+  database: process.env.PG_DATABASE || "chatapplication",
+  max: 10, // max connections in pool
+  idleTimeoutMillis: 30000, // close idle clients after 30s
+  connectionTimeoutMillis: 5000, // return error if connection takes > 5s
 });
 
-pool.on("connect", () => {
-  databaseLogger.info("Connected to PostgreSQL database");
+// Log connection errors
+pool.on("error", (err) => {
+  databaseLogger.error("Unexpected Postgres client error", { error: err.message });
+  process.exit(-1);
 });
 
-module.exports = pool;
+// Export query + pool
+module.exports = {
+  query: (text, params) => {
+    databaseLogger.debug("Executing query", { text, params });
+    return pool.query(text, params);
+  },
+  getPool: () => pool,
+};
